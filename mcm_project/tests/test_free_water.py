@@ -22,14 +22,14 @@ class TestValidation:
 
 class TestSignal:
     def test_default_d_iso(self):
-        """Default d_iso = 3.0 × 10⁻³ mm²/s."""
+        """Default d_iso = 3.0e-3 × 10⁻³ mm²/s."""
         b = 2000.0
         s = free_water_signal(b)
         assert s == pytest.approx(np.exp(-b * 3.0e-3))
 
     def test_custom_d_iso(self):
         b = 1000.0
-        d_iso = 2.0
+        d_iso = 2.0e-3
         s = free_water_signal(b, d_iso)
         assert s == pytest.approx(np.exp(-b * 2.0e-3))
 
@@ -46,7 +46,7 @@ class TestSignal:
         rng = np.random.default_rng(42)
         for _ in range(100):
             b = rng.uniform(0, 5000)
-            d_iso = rng.uniform(1.0, 4.0)
+            d_iso = rng.uniform(1.0e-3, 4.0e-3)
             s = free_water_signal(b, d_iso)
             assert 0.0 <= s <= 1.0
 
@@ -59,7 +59,7 @@ class TestSignal:
 
     def test_d_iso_increase_decreases_signal(self):
         """Higher d_iso → more attenuation → lower signal."""
-        disos = [1.0, 2.0, 3.0, 4.0]
+        disos = [1.0e-3, 2.0e-3, 3.0e-3, 4.0e-3]
         signals = [free_water_signal(2000.0, d) for d in disos]
         for i in range(len(signals) - 1):
             assert signals[i] > signals[i + 1]

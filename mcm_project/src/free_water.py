@@ -26,7 +26,7 @@ import numpy as np
 
 def free_water_signal(
     b: float,
-    d_iso: float = 3.0,
+    d_iso: float = 3.0e-3,
 ) -> float:
     """
     Compute the DWI signal for the free-water compartment.
@@ -36,7 +36,7 @@ def free_water_signal(
     b : float
         b-value in s/mm².
     d_iso : float, optional
-        Isotropic diffusivity in mm²/s. Default is 3.0 × 10⁻³ mm²/s
+        Isotropic diffusivity in mm²/s. Default is 3.0×10⁻³ mm²/s
         (typical for CSF at body temperature).
 
     Returns
@@ -57,4 +57,4 @@ def free_water_signal(
     if b == 0.0:
         return 1.0
 
-    return float(np.exp(-b * d_iso * 1e-3))
+    return float(np.exp(-b * d_iso))

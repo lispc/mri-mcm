@@ -73,18 +73,18 @@ _UPPER_BOUNDS = np.array([
 ])
 
 _DEFAULT_INITIAL = np.array([
-    0.3,    # f_ic
-    5.0,    # k
-    0.5 * np.pi,  # theta
-    0.0,    # phi
-    0.1,    # f_ss
-    4.0,    # R_ss
-    0.1,    # f_ls
-    8.0,    # R_ls
-    0.2,    # f_ec
-    1.2e-3, # d_parallel_ec
-    0.6e-3, # d_perp_ec
-    0.8,    # f_T
+    0.3,     # f_ic
+    5.0,     # k
+    0.5 * np.pi,   # theta
+    0.0,     # phi
+    0.1,     # f_ss
+    4.0,     # R_ss
+    0.1,     # f_ls
+    8.0,     # R_ls
+    0.2,     # f_ec
+    1.2e-3,  # d_parallel_ec (mm²/s)
+    0.6e-3,  # d_perp_ec (mm²/s)
+    0.8,     # f_T
 ])
 
 

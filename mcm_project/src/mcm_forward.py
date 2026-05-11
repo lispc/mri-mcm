@@ -23,9 +23,9 @@ from dataclasses import dataclass
 from typing import Union
 import numpy as np
 
-from watson_stick import watson_stick_signal
+from watson_stick import watson_stick_signal, watson_stick_signal_batch
 from sphere_restricted import sphere_restricted_signal
-from extracellular_tensor import extracellular_tensor_signal
+from extracellular_tensor import extracellular_tensor_signal, extracellular_tensor_signal_batch
 from free_water import free_water_signal
 
 
@@ -40,27 +40,27 @@ class MCMParameters:
     The forward model handles all SI conversions internally.
     """
     # --- Intracellular (Watson + Stick) ---
-    f_ic: float = 0.3          # volume fraction [0, 1]
-    k: float = 5.0             # Watson concentration [0, ∞)
-    mu: np.ndarray = None      # principal direction (3,) unit vector
-    d_parallel_ic: float = 1.0  # μm²/ms
+    f_ic: float = 0.3           # volume fraction [0, 1]
+    k: float = 5.0              # Watson concentration [0, ∞)
+    mu: np.ndarray = None       # principal direction (3,) unit vector
+    d_parallel_ic: float = 1.0e-3  # mm²/s
 
     # --- Small sphere (microglia soma) ---
-    f_ss: float = 0.1          # volume fraction [0, 1]
-    R_ss: float = 4.0          # μm
+    f_ss: float = 0.1           # volume fraction [0, 1]
+    R_ss: float = 4.0           # μm
 
     # --- Large sphere (astrocyte soma) ---
-    f_ls: float = 0.1          # volume fraction [0, 1]
-    R_ls: float = 8.0          # μm
+    f_ls: float = 0.1           # volume fraction [0, 1]
+    R_ls: float = 8.0           # μm
 
     # --- Extracellular tensor ---
-    f_ec: float = 0.2          # volume fraction [0, 1]
-    d_parallel_ec: float = 1.2  # μm²/ms
-    d_perp_ec: float = 0.6      # μm²/ms
+    f_ec: float = 0.2           # volume fraction [0, 1]
+    d_parallel_ec: float = 1.2e-3  # mm²/s
+    d_perp_ec: float = 0.6e-3      # mm²/s
 
     # --- Free water ---
-    f_T: float = 0.8           # total tissue water fraction [0, 1]
-    d_iso: float = 3.0         # μm²/ms (CSF at 37 °C)
+    f_T: float = 0.8            # total tissue water fraction [0, 1]
+    d_iso: float = 3.0e-3       # mm²/s (CSF at 37 °C)
 
     def __post_init__(self):
         if self.mu is None:
@@ -111,7 +111,7 @@ def mcm_signal(
         mu=params.mu,
         b=b,
         k=params.k,
-        d_parallel=params.d_parallel_ic * 1e-3,
+        d_parallel=params.d_parallel_ic,
     )
 
     # --- Small sphere ---
@@ -137,8 +137,8 @@ def mcm_signal(
         q=q,
         mu=params.mu,
         b=b,
-        d_parallel=params.d_parallel_ec * 1e-3,
-        d_perp=params.d_perp_ec * 1e-3,
+        d_parallel=params.d_parallel_ec,
+        d_perp=params.d_perp_ec,
     )
 
     # --- Free water ---
@@ -200,8 +200,7 @@ def mcm_signal_batch(
     # Normalise directions
     q_norm = q_dirs / (np.linalg.norm(q_dirs, axis=1, keepdims=True) + 1e-15)
 
-    # Pre-compute compartment signals that do NOT depend on q
-    # (Spheres and free water are isotropic)
+    # Pre-compute isotropic compartment signals (spheres + free water)
     s_ss_all = np.array([
         sphere_restricted_signal(bvals[i], deltas[i], Deltas[i], params.R_ss)
         for i in range(n)
@@ -215,34 +214,33 @@ def mcm_signal_batch(
         for i in range(n)
     ])
 
-    # Pre-compute Watson normalisation (cached inside watson_stick_signal,
-    # but we can still save some overhead by calling it once)
-    # Actually watson_stick_signal handles caching internally.
+    # Group by unique (b, delta, Delta) to batch anisotropic compartments
+    # For now, we batch Watson-Stick and EC per unique b (most common case)
+    unique_b = np.unique(bvals)
+    s_ic_all = np.zeros(n, dtype=float)
+    s_ec_all = np.zeros(n, dtype=float)
 
-    signals = np.zeros(n, dtype=float)
-    for i in range(n):
-        s_ic = watson_stick_signal(
-            q=q_norm[i],
-            mu=params.mu,
-            b=bvals[i],
-            k=params.k,
-            d_parallel=params.d_parallel_ic * 1e-3,
+    for b_u in unique_b:
+        mask = bvals == b_u
+        q_batch = q_norm[mask]
+        # Batch Watson-Stick for all directions at this b
+        s_ic_batch = watson_stick_signal_batch(
+            q_batch, params.mu, b_u, params.k, params.d_parallel_ic,
         )
-        s_ec = extracellular_tensor_signal(
-            q=q_norm[i],
-            mu=params.mu,
-            b=bvals[i],
-            d_parallel=params.d_parallel_ec * 1e-3,
-            d_perp=params.d_perp_ec * 1e-3,
+        s_ic_all[mask] = s_ic_batch
+        # Batch EC tensor for all directions at this b
+        s_ec_batch = extracellular_tensor_signal_batch(
+            q_batch, params.mu, b_u, params.d_parallel_ec, params.d_perp_ec,
         )
-        signals[i] = (
-            params.f_ic * s_ic
-            + params.f_ss * s_ss_all[i]
-            + params.f_ls * s_ls_all[i]
-            + params.f_ec * s_ec
-            + (1.0 - params.f_T) * s_fw_all[i]
-        )
+        s_ec_all[mask] = s_ec_batch
 
+    signals = (
+        params.f_ic * s_ic_all
+        + params.f_ss * s_ss_all
+        + params.f_ls * s_ls_all
+        + params.f_ec * s_ec_all
+        + (1.0 - params.f_T) * s_fw_all
+    )
     return np.clip(signals, 0.0, 1.0)
 
 

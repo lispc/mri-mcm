@@ -27,11 +27,11 @@ class TestVectorConversion:
     def test_round_trip(self):
         p = MCMParameters(
             f_ic=0.25, k=10.0, mu=np.array([0.5, 0.5, np.sqrt(0.5)]),
-            d_parallel_ic=1.0,
+            d_parallel_ic=1.0e-3,
             f_ss=0.15, R_ss=3.5,
             f_ls=0.05, R_ls=7.0,
             f_ec=0.3, d_parallel_ec=1.5e-3, d_perp_ec=0.8e-3,
-            f_T=0.75, d_iso=3.0,
+            f_T=0.75, d_iso=3.0e-3,
         )
         vec = params_to_vec(p)
         p2 = vec_to_params(vec)
@@ -97,11 +97,11 @@ class TestFittingNoiseless:
     def test_recover_pure_free_water(self, small_scheme):
         """Fit to pure free-water data should recover f_T≈0."""
         true_params = MCMParameters(
-            f_ic=0.0, k=5.0, mu=np.array([0, 0, 1]), d_parallel_ic=1.0,
+            f_ic=0.0, k=5.0, mu=np.array([0, 0, 1]), d_parallel_ic=1.0e-3,
             f_ss=0.0, R_ss=4.0,
             f_ls=0.0, R_ls=8.0,
-            f_ec=0.0, d_parallel_ec=1.2, d_perp_ec=0.6,
-            f_T=0.0, d_iso=3.0,
+            f_ec=0.0, d_parallel_ec=1.2e-3, d_perp_ec=0.6e-3,
+            f_T=0.0, d_iso=3.0e-3,
         )
         data = simulate_mcm_data(
             small_scheme["q_dirs"], small_scheme["bvals"],
@@ -121,11 +121,11 @@ class TestFittingNoiseless:
     def test_recover_pure_extracellular(self, small_scheme):
         """Fit to pure EC data should recover EC parameters."""
         true_params = MCMParameters(
-            f_ic=0.0, k=5.0, mu=np.array([0, 0, 1]), d_parallel_ic=1.0,
+            f_ic=0.0, k=5.0, mu=np.array([0, 0, 1]), d_parallel_ic=1.0e-3,
             f_ss=0.0, R_ss=4.0,
             f_ls=0.0, R_ls=8.0,
             f_ec=1.0, d_parallel_ec=1.2e-3, d_perp_ec=0.6e-3,
-            f_T=1.0, d_iso=3.0,
+            f_T=1.0, d_iso=3.0e-3,
         )
         data = simulate_mcm_data(
             small_scheme["q_dirs"], small_scheme["bvals"],
@@ -144,11 +144,11 @@ class TestFittingNoiseless:
     def test_recover_full_model_noisy(self, small_scheme):
         """Fit to full MCM data with moderate SNR."""
         true_params = MCMParameters(
-            f_ic=0.3, k=5.0, mu=np.array([0, 0, 1]), d_parallel_ic=1.0,
+            f_ic=0.3, k=5.0, mu=np.array([0, 0, 1]), d_parallel_ic=1.0e-3,
             f_ss=0.1, R_ss=4.0,
             f_ls=0.1, R_ls=8.0,
             f_ec=0.2, d_parallel_ec=1.2e-3, d_perp_ec=0.6e-3,
-            f_T=0.8, d_iso=3.0,
+            f_T=0.8, d_iso=3.0e-3,
         )
         data = simulate_mcm_data(
             small_scheme["q_dirs"], small_scheme["bvals"],
@@ -173,11 +173,11 @@ class TestMultiStart:
             n_dirs=10, b_values=(2000.0,), Delta_values=(40.0,),
         )
         true_params = MCMParameters(
-            f_ic=0.3, k=5.0, mu=np.array([0, 0, 1]), d_parallel_ic=1.0,
+            f_ic=0.3, k=5.0, mu=np.array([0, 0, 1]), d_parallel_ic=1.0e-3,
             f_ss=0.1, R_ss=4.0,
             f_ls=0.1, R_ls=8.0,
             f_ec=0.2, d_parallel_ec=1.2e-3, d_perp_ec=0.6e-3,
-            f_T=0.8, d_iso=3.0,
+            f_T=0.8, d_iso=3.0e-3,
         )
         data = simulate_mcm_data(
             scheme["q_dirs"], scheme["bvals"],

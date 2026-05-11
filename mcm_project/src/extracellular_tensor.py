@@ -86,3 +86,41 @@ def extracellular_tensor_signal(
     cos_sq = float(np.dot(q_norm, mu_norm) ** 2)
     adc = d_parallel * cos_sq + d_perp * (1.0 - cos_sq)
     return float(np.exp(-b * adc))
+
+
+def extracellular_tensor_signal_batch(
+    q_directions: np.ndarray,
+    mu: np.ndarray,
+    b: float,
+    d_parallel: float,
+    d_perp: float,
+) -> np.ndarray:
+    """
+    Batch compute extracellular tensor signals for multiple gradient directions.
+
+    Parameters
+    ----------
+    q_directions : np.ndarray, shape (N, 3)
+        Gradient direction vectors (will be normalised).
+    mu : np.ndarray, shape (3,)
+        Principal direction (will be normalised).
+    b : float
+        b-value in s/mm².
+    d_parallel : float
+        Diffusivity parallel to μ in mm²/s.
+    d_perp : float
+        Diffusivity perpendicular to μ in mm²/s.
+
+    Returns
+    -------
+    np.ndarray, shape (N,)
+        Signal values.
+    """
+    if b == 0.0:
+        return np.ones(len(q_directions), dtype=float)
+
+    q_norm = q_directions / (np.linalg.norm(q_directions, axis=1, keepdims=True) + 1e-15)
+    mu_norm = mu / (np.linalg.norm(mu) + 1e-15)
+    cos_sq = (q_norm @ mu_norm) ** 2
+    adc = d_parallel * cos_sq + d_perp * (1.0 - cos_sq)
+    return np.exp(-b * adc)

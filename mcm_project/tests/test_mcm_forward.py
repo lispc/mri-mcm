@@ -23,11 +23,11 @@ from mcm_forward import (
 @pytest.fixture
 def default_params():
     return MCMParameters(
-        f_ic=0.3, k=5.0, mu=np.array([0.0, 0.0, 1.0]), d_parallel_ic=1.0,
+        f_ic=0.3, k=5.0, mu=np.array([0.0, 0.0, 1.0]), d_parallel_ic=1.0e-3,
         f_ss=0.1, R_ss=4.0,
         f_ls=0.1, R_ls=8.0,
-        f_ec=0.2, d_parallel_ec=1.2, d_perp_ec=0.6,
-        f_T=0.8, d_iso=3.0,
+        f_ec=0.2, d_parallel_ec=1.2e-3, d_perp_ec=0.6e-3,
+        f_T=0.8, d_iso=3.0e-3,
     )
 
 
@@ -74,11 +74,11 @@ class TestMCMSignal:
         """When q ∥ μ and k is large, stick compartment dominates attenuation."""
         q = np.array([0.0, 0.0, 1.0])
         params = MCMParameters(
-            f_ic=0.8, k=20.0, mu=np.array([0.0, 0.0, 1.0]), d_parallel_ic=1.0,
+            f_ic=0.8, k=20.0, mu=np.array([0.0, 0.0, 1.0]), d_parallel_ic=1.0e-3,
             f_ss=0.05, R_ss=4.0,
             f_ls=0.05, R_ls=8.0,
-            f_ec=0.05, d_parallel_ec=1.2, d_perp_ec=0.6,
-            f_T=0.95, d_iso=3.0,
+            f_ec=0.05, d_parallel_ec=1.2e-3, d_perp_ec=0.6e-3,
+            f_T=0.95, d_iso=3.0e-3,
         )
         s = mcm_signal(q, 2000.0, 5.0, 40.0, params)
         # stick-only signal at b=2000, d_parallel=1.0 → exp(-2) ≈ 0.135
@@ -89,11 +89,11 @@ class TestMCMSignal:
         """k=0 → Watson distribution is uniform, but stick itself is still
         anisotropic, so signal varies with q.  Check against exact integral."""
         params = MCMParameters(
-            f_ic=1.0, k=0.0, mu=np.array([0.0, 0.0, 1.0]), d_parallel_ic=1.0,
+            f_ic=1.0, k=0.0, mu=np.array([0.0, 0.0, 1.0]), d_parallel_ic=1.0e-3,
             f_ss=0.0, R_ss=4.0,
             f_ls=0.0, R_ls=8.0,
-            f_ec=0.0, d_parallel_ec=1.2, d_perp_ec=0.6,
-            f_T=1.0, d_iso=3.0,
+            f_ec=0.0, d_parallel_ec=1.2e-3, d_perp_ec=0.6e-3,
+            f_T=1.0, d_iso=3.0e-3,
         )
         q = np.array([1.0, 0.0, 0.0])
         s = mcm_signal(q, 2000.0, 5.0, 40.0, params)
@@ -105,11 +105,11 @@ class TestMCMSignal:
     def test_pure_free_water(self, default_params):
         """f_T=0 → pure free water."""
         params = MCMParameters(
-            f_ic=0.0, k=5.0, mu=np.array([0.0, 0.0, 1.0]), d_parallel_ic=1.0,
+            f_ic=0.0, k=5.0, mu=np.array([0.0, 0.0, 1.0]), d_parallel_ic=1.0e-3,
             f_ss=0.0, R_ss=4.0,
             f_ls=0.0, R_ls=8.0,
-            f_ec=0.0, d_parallel_ec=1.2, d_perp_ec=0.6,
-            f_T=0.0, d_iso=3.0,
+            f_ec=0.0, d_parallel_ec=1.2e-3, d_perp_ec=0.6e-3,
+            f_T=0.0, d_iso=3.0e-3,
         )
         q = np.array([1.0, 0.0, 0.0])
         s = mcm_signal(q, 2000.0, 5.0, 40.0, params)
@@ -118,11 +118,11 @@ class TestMCMSignal:
     def test_pure_extracellular(self, default_params):
         """f_ec=1, others=0 → pure extracellular tensor."""
         params = MCMParameters(
-            f_ic=0.0, k=5.0, mu=np.array([0.0, 0.0, 1.0]), d_parallel_ic=1.0,
+            f_ic=0.0, k=5.0, mu=np.array([0.0, 0.0, 1.0]), d_parallel_ic=1.0e-3,
             f_ss=0.0, R_ss=4.0,
             f_ls=0.0, R_ls=8.0,
-            f_ec=1.0, d_parallel_ec=1.2, d_perp_ec=0.6,
-            f_T=1.0, d_iso=3.0,
+            f_ec=1.0, d_parallel_ec=1.2e-3, d_perp_ec=0.6e-3,
+            f_T=1.0, d_iso=3.0e-3,
         )
         q = np.array([0.0, 0.0, 1.0])
         s = mcm_signal(q, 2000.0, 5.0, 40.0, params)
